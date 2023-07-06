@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
@@ -29,6 +31,21 @@ public class ControllerExceptionHandler {
     private final static String PROBLEMS = "problemDetails";
     public static final String MUST_HAVE_A_VALID_TYPE = "The field '%s' must have a valid type of '%s'";
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(BAD_REQUEST, "Data already exists");
+        Error error = Error.builder().message(e.getMessage()).build();
+        pd.setProperty(PROBLEMS, List.of(error));
+        return pd;
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    public ProblemDetail handleSecurityException(SecurityException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(FORBIDDEN, "Illegal access");
+        Error error = Error.builder().message(e.getMessage()).build();
+        pd.setProperty(PROBLEMS, List.of(error));
+        return pd;
+    }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ProblemDetail handleUserAlreadyExistsException(UserAlreadyExistsException e) {
@@ -40,7 +57,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ProblemDetail handleNotFoundException(NotFoundException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Data is not found");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(NOT_FOUND, "Data is not found");
         Error error = Error.builder().message(e.getMessage()).wrongValue(e.getWrongValue()).build();
         pd.setProperty(PROBLEMS, List.of(error));
         return pd;
@@ -48,7 +65,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Failed validation");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(BAD_REQUEST, "Failed validation");
         List<Error> errors = new ArrayList<>();
         List<FieldError> fieldErrorList = e.getBindingResult().getFieldErrors();
         for (FieldError err : fieldErrorList) {
@@ -64,7 +81,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Values can not be read");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(BAD_REQUEST, "Values can not be read");
         Throwable throwable = e.getCause();
         Error error = Error.builder().message(e.getMessage()).build();
         if (throwable instanceof InvalidTypeIdException exception) {
@@ -80,7 +97,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ProblemDetail handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Wrong input parameter");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(BAD_REQUEST, "Wrong input parameter");
         String actualField = e.getName();
         Object wrongValue = Optional.ofNullable(e.getValue()).orElse("");
         String requiredType = "";
