@@ -1,10 +1,12 @@
 package com.chiacademy.software.phonecontacts.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.Setter;
 import org.hibernate.Hibernate;
 
 import java.util.HashSet;
@@ -14,11 +16,13 @@ import java.util.Set;
 @Entity
 @Table(name = "contacts")
 @Builder
-@ToString
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Contact {
     @Id
+    @JsonIgnore
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
@@ -37,6 +41,7 @@ public class Contact {
     Set<String> phones = new HashSet<>();
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 
     @Override

@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -62,11 +64,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<Contact> getAllContactsByLogin(String login, Pageable pageable) {
-        User user = userRepository.findByLogin(login)
-                .orElseThrow(()->new UsernameNotFoundException("No user found"));
-        Page<Contact> contacts = contactRepository.findAllByUser(user, pageable);
-        return contacts;
+    public Page<Contact> getAllContactsByLogin(String login, Pageable pageable, Principal principal) {
+        if (login.equalsIgnoreCase(principal.getName())) {
+            User user = userRepository.findByLogin(login)
+                    .orElseThrow(() -> new UsernameNotFoundException("No user found"));
+            return contactRepository.findAllByUser(user, pageable);
+        } else {
+            throw new SecurityException("Access is not allowed");
+        }
     }
 
 

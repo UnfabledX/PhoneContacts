@@ -7,11 +7,14 @@ import com.chiacademy.software.phonecontacts.model.dto.ContactDto;
 import com.chiacademy.software.phonecontacts.repository.ContactRepository;
 import com.chiacademy.software.phonecontacts.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -23,8 +26,18 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ContactDto create(ContactDto request, Principal principal) {
-        User user = userRepository.findByLogin(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("No user found"));
+        User user = getUser(principal);
+        boolean isDuplicateEmailPresentInTheSameUser = Stream.of(request)
+                .map(ContactDto::getEmails)
+                .flatMap(Set::stream)
+                .anyMatch(email -> contactRepository.existsContactByUserAndEmailsContaining(user, email));
+        boolean isDuplicatePhonePresentInTheSameUser = Stream.of(request)
+                .map(ContactDto::getPhones)
+                .flatMap(Set::stream)
+                .anyMatch(phone -> contactRepository.existsContactByUserAndPhonesContaining(user, phone));
+        if (isDuplicateEmailPresentInTheSameUser || isDuplicatePhonePresentInTheSameUser) {
+            throw new DataIntegrityViolationException("Such phone/email is already present in your contacts");
+        }
         Contact contact = Contact.builder()
                 .name(request.getName())
                 .emails(request.getEmails())
@@ -36,12 +49,33 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public void delete(String contactName, Principal principal) {
-        User user = userRepository.findByLogin(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("No user found"));
+        User user = getUser(principal);
         if (contactRepository.existsContactByNameAndUser(contactName, user)) {
             contactRepository.deleteContactByNameAndUser(contactName, user);
         } else {
             throw new NotFoundException("There is no contact present by such name", contactName);
         }
     }
+
+    @Override
+    public Contact editContactByName(ContactDto dto, String oldContactName, Principal principal) {
+        User user = getUser(principal);
+        Contact oldContact = contactRepository.findContactByNameAndUser(oldContactName, user)
+                .orElseThrow(() -> new NotFoundException("There is no contact present by such name", oldContactName));
+        Contact updatedContact = Contact.builder()
+                .id(oldContact.getId())
+                .name(dto.getName())
+                .emails(dto.getEmails())
+                .phones(dto.getPhones())
+                .user(user)
+                .build();
+        return contactRepository.save(updatedContact);
+    }
+
+
+    private User getUser(Principal principal) {
+        return userRepository.findByLogin(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("No user found"));
+    }
+
 }

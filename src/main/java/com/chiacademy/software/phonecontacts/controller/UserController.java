@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -42,7 +44,8 @@ public class UserController {
     @GetMapping("{login}/contacts")
     @ResponseStatus(HttpStatus.OK)
     public Page<Contact> getAllContactsByUser(@PathVariable("login") String login,
-                                              @PageableDefault Pageable pageable){
-        return userService.getAllContactsByLogin(login, pageable);
+                                              @PageableDefault Pageable pageable,
+                                              Principal principal){
+        return userService.getAllContactsByLogin(login, pageable, principal);
     }
 }
