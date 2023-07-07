@@ -1,0 +1,324 @@
+openapi: 3.0.1
+info:
+  title: PhoneContacts service.
+  description:
+    “Phone contacts” application.
+  contact:
+    name: "Oleksii Synelnyk"
+    email: oleksiisynelnyk@gmail.com
+  version: 0.0.1
+externalDocs:
+  description: Requirements for the entire project
+  url: https://docs.google.com/forms/d/e/1FAIpQLSd0BmUy2BSE4C41qhsH40Dbogox6g8UFka__qzobVmMZFN8hQ/viewform?pli=1
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/contacts/{contact}/edit:
+    put:
+      tags:
+        - contact-controller
+      operationId: editContactByName
+      parameters:
+        - name: contact
+          in: path
+          required: true
+          schema:
+            maxLength: 24
+            minLength: 3
+            type: string
+            example: contactName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactDto'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '404':
+          description: Not Found - no contact present
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: "404 Not Found"
+                  message:
+                    type: string
+                    example: "There is no contact present by such name"  
+        
+  /api/v1/users/register:
+    post:
+      tags:
+        - user-controller
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationRequest'
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+        '400':
+          description: Bad Request - Login is already used 
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: "400 Bad Request."
+                  message:
+                    type: string
+                    example: "User login already exists"
+        '403':
+          description: Forbidden - wrong password entered
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: "403 Forbidden"
+                    
+  /api/v1/users/auth:
+    post:
+      tags:
+        - user-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+        '403':
+          description: Forbidden - wrong password entered
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: "403 Forbidden"
+                
+  /api/v1/contacts/create:
+    post:
+      tags:
+        - contact-controller
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactDto'
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactDto'
+        '400':
+          description: Bad Request - Data already exists or Failed validation when email, phone or contact name is not valid.
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: "400 Bad Request."
+                  message:
+                    type: string
+                    example: "Such phone/email is already present in your contacts"
+  /api/v1/users/{login}/contacts:
+    get:
+      tags:
+        - user-controller
+      operationId: getAllContactsByUser
+      parameters:
+        - name: login
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageContact'
+  /api/v1/contacts/delete:
+    delete:
+      tags:
+        - contact-controller
+      operationId: delete
+      parameters:
+        - name: contact
+          in: query
+          required: true
+          schema:
+            type: string
+            example: Olena
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    ContactDto:
+      type: object
+      properties:
+        name:
+          maxLength: 24
+          minLength: 3
+          type: string
+          example: Olena
+        emails:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            example: "Leka@gmail.com"
+        phones:
+          uniqueItems: true
+          type: array
+          items:
+            pattern: \+[0-9]{3}\s?[0-9]{2}\s?[0-9]{3}\s?[0-9]{4}
+            type: string
+    Contact:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Olena
+        emails:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            example: "Leka@gmail.com"
+        phones:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            example: "+05238 3497326"
+    AuthenticationRequest:
+      type: object
+      properties:
+        login:
+          maxLength: 24
+          minLength: 3
+          type: string
+          example: Oleksii
+        password:
+          maxLength: 64
+          minLength: 5
+          type: string
+          example: password123
+    AuthenticationResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPbGVrc2lpIiwiaWF0IjoxNjg4NjU4MjQzLCJleHAiOjE2ODg2NTk2ODN9.-gVwn_LDSvt-rdgO5v9pP0wRW6thc3baHK5mSQ_pums
+    Pageable:
+      type: object
+      properties:
+        page:
+          minimum: 0
+          type: integer
+          format: int32
+        size:
+          minimum: 1
+          type: integer
+          format: int32
+        sort:
+          type: array
+          items:
+            type: string
+    PageContact:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean

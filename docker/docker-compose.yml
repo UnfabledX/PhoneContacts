@@ -1,0 +1,25 @@
+version: '3.3'
+services:
+  contacts-service:
+    image: unfabled/phonecontacts:phonecontacts0.0.1
+    restart: on-failure
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+    depends_on:
+      database:
+        condition: service_started
+    ports:
+      - '8080:8080'
+  database:
+    image: postgres
+    container_name: contacts_database
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    restart: on-failure
+    ports:
+      - "5432:5432"
