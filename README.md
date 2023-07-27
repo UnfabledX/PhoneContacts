@@ -11,16 +11,16 @@ to the postman public workspace where you can find already made endpoints for te
 Don't forget to apply env variables at environments tab in postman
 
 ## Description of the project:
-Phone contacts application allows adding/editing and deleting contacts data. 
-Single contact is represented by the following data:
-**1.**     Contact name
-**1.**     Contact emails. One contact may have multiple emails
-**1.**     Contact phone number. One contact may have multiple phone numbers
+Phone contacts application allows adding/editing and deleting contacts data. <br />
+Single contact is represented by the following data: <br />
+**1.**     Contact name <br />
+**2.**     Contact emails. One contact may have multiple emails <br />
+**3.**     Contact phone number. One contact may have multiple phone numbers <br />
 
-User should have a possibility to:
-**1.**     Register in the app, login and password should be provided during registration
-**1.**     Login to the app
-**1.**     Add new contact
-**1.**     Edit existing contact
-**1.**     Delete existing contact
-**1.**     Get list of existing contacts
+User should have a possibility to: <br/>
+**1.**     Register in the app, login and password should be provided during registration<br />
+**2.**     Login to the app<br/>
+**3.**     Add new contact<br/>
+**4.**     Edit existing contact<br/>
+**5.**     Delete existing contact<br/>
+**6.**     Get list of existing contacts<br/>
