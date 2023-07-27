@@ -14,13 +14,13 @@ Don't forget to apply env variables at environments tab in postman
 Phone contacts application allows adding/editing and deleting contacts data. 
 Single contact is represented by the following data:
 **1.**     Contact name
-**2.**     Contact emails. One contact may have multiple emails
-**3.**     Contact phone number. One contact may have multiple phone numbers
+**1.**     Contact emails. One contact may have multiple emails
+**1.**     Contact phone number. One contact may have multiple phone numbers
 
 User should have a possibility to:
 **1.**     Register in the app, login and password should be provided during registration
-**2.**     Login to the app
-**3.**     Add new contact
-**4.**     Edit existing contact
-**5.**     Delete existing contact
-**6.**     Get list of existing contacts
+**1.**     Login to the app
+**1.**     Add new contact
+**1.**     Edit existing contact
+**1.**     Delete existing contact
+**1.**     Get list of existing contacts
